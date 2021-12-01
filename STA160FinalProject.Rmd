@@ -1,0 +1,69 @@
+---
+title: "STA160FinalProject"
+author: "John Michael Bautista"
+date: "6/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE}
+library(tidyverse)
+library(MASS)
+library(plotly)
+```
+
+```{r, message=FALSE}
+train <- read_csv("~/STA 160 Final Project/train.csv")
+
+# Full model regression
+full_reg <- lm(critical_temp~., data = train)
+summary(full_reg)
+
+# Backward selection using AIC as selection criterion
+step_reg <- stepAIC(full_reg, k = 2, trace = FALSE)
+summary(step_reg)
+
+# Does not provide much info due to correlated versions of key features (i.e., mean atomic mass and weighted mean atomic mass). Rerun regression without unnecessary variables & compare models
+reg <- lm(critical_temp~number_of_elements+mean_atomic_mass+entropy_atomic_mass+range_atomic_mass+std_atomic_mass+mean_fie+entropy_fie+range_fie+std_fie+mean_atomic_radius+entropy_atomic_radius+range_atomic_radius+std_atomic_radius+mean_Density+entropy_Density+range_Density+std_Density+mean_ElectronAffinity+entropy_ElectronAffinity+range_ElectronAffinity+std_ElectronAffinity+mean_FusionHeat+entropy_FusionHeat+range_FusionHeat+std_FusionHeat+mean_ThermalConductivity+entropy_ThermalConductivity+range_ThermalConductivity+std_ThermalConductivity+mean_Valence+entropy_Valence+range_Valence+std_Valence, data = train)
+summary(reg)
+step_reg_2 <- stepAIC(reg, k = 2, trace = FALSE)
+summary(step_reg_2)
+
+AIC(step_reg)
+AIC(step_reg_2)
+
+test <- train[19137:21263,]
+
+full_reg_test <- predict(step_reg, newdata = test)
+full_reg_test_diff <- test[,82] - full_reg_test
+plot_ly(data = full_reg_test_diff, x = 1:2127, y = ~critical_temp)
+mean(full_reg_test_diff[,1])
+sd(full_reg_test_diff[,1])
+range(full_reg_test_diff)
+
+reg_test <- predict(step_reg_2, newdata = test)
+reg_test_diff <- test[,82] - reg_test
+plot_ly(data = reg_test_diff, x = 1:2127, y = ~critical_temp)
+mean(reg_test_diff[,1])
+sd(reg_test_diff[,1])
+range(reg_test_diff)
+```
+
+```{r, message=FALSE}
+unique_m <- read_csv("~/STA 160 Final Project/unique_m.csv")
+m_reg <- lm(critical_temp~., data = unique_m)
+summary(m_reg)
+step_m_reg <- stepAIC(m_reg, k = 2, trace = FALSE)
+summary(step_m_reg)
+test_m <- unique_m[19137:21263,]
+reg_m_test <- predict(step_m_reg, newdata = test_m)
+reg_m_test_diff <- test_m[,87] - reg_m_test
+plot_ly(data = reg_m_test_diff, x = 1:2127, y = ~critical_temp)
+mean(reg_m_test_diff[,1])
+sd(reg_m_test_diff[,1])
+range(reg_m_test_diff)
+```
+
